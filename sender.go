@@ -234,7 +234,7 @@ func (s *Sender) trySend(ctx context.Context, evt eventer) error {
 
 			switch err.(type) {
 			case *amqp.Error, *amqp.DetachError:
-				err = s.handleAmqpError(ctx, err)
+				err = s.handleAMQPError(ctx, err)
 				if err != nil {
 					tab.For(ctx).Error(err)
 					return err
@@ -247,7 +247,9 @@ func (s *Sender) trySend(ctx context.Context, evt eventer) error {
 	}
 }
 
-func (s *Sender) handleAmqpError(ctx context.Context, err error) error {
+// handleAMQPError is called internally when an event has failed to send so we
+// can parse the error to determine whether we should attempt to retry sending the event again.
+func (s *Sender) handleAMQPError(ctx context.Context, err error) error {
 	if amqpError, ok := err.(*amqp.Error); ok {
 		switch amqpError.Condition {
 		case errorServerBusy:
